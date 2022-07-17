@@ -66,13 +66,56 @@ public class Rafl {
 				String result = line.trim();
 				if (line.contains("#")) {
 					double score = Double.parseDouble(line.split(",")[1].trim());
+					String stmt = line.split(",")[0].trim();
 					if (score > 0.0) {
-						results.add(result);
+						boolean exists = false;
+						for (String res:results){
+							String rstmt = res.split(",")[0].trim();
+							if (rstmt.contentEquals(stmt)){
+								exists = true;
+								break;
+							}
+						}
+						if (!exists){
+							results.add(result);
+						}
 					}
 				}
 				line = reader.readLine();
 			}
 			reader.close();
+			
+			if (results.size() < 100){
+				reader = new BufferedReader(new FileReader(path));
+				line = reader.readLine();
+				while (line != null) {
+					String result = line.trim();
+					if (line.contains("#")) {
+						String stmt = line.split(",")[0].trim();
+						double score = Double.parseDouble(line.split(",")[1].trim());
+						if (score == 0.0) {
+							boolean exists = false;
+							for (String res:results){
+								String rstmt = res.split(",")[0].trim();
+								if (rstmt.contentEquals(stmt)){
+								//	logger.info("FOUND");
+									exists = true;
+									break;
+								}
+							}
+							if (!exists){
+								results.add(result);
+							}
+						}
+					}
+					line = reader.readLine();
+					if (results.size() >= 100){
+						break;
+					}
+				}
+				reader.close();
+			}
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -193,13 +236,13 @@ public class Rafl {
 		
 		String RFunction = "RankAggreg(data, " + Config.k + ", seed=" + Config.seed + ", method=\"" + Config.method
 				+ "\", convIn=" + Config.convIn + ", popSize=" + Config.popSize + ", CP=" + Config.CP
-				+ ", MP=" + Config.MP + ", maxIter=" + Config.maxIter  
+				+ ", MP=" + Config.MP + ", maxIter=" + Config.maxIter + ", N=" + Config.N 
 				+ ", distance=\"" + Config.distance + "\", rho=" + Config.rho + ", verbose=TRUE)\n";
 		if (colcount < Config.k)
 			RFunction = "RankAggreg(data, ncol(data), seed=" + Config.seed + ", method=\"" + Config.method
 					+ "\", convIn=" + Config.convIn + ", popSize=" + Config.popSize + ", CP=" + Config.CP
-					+ ", MP=" + Config.MP + ", maxIter=" + Config.maxIter  
-					+ ", distance=\"" + Config.distance + "\", rho=0.1" + ", verbose=TRUE)\n";
+					+ ", MP=" + Config.MP + ", maxIter=" + Config.maxIter  + ", N=" + Config.N 
+					+ ", distance=\"" + Config.distance + "\", rho=" + Config.rho + ", verbose=TRUE)\n";
 
 		
 		createRScriptToCombineFL(defect, rPath, RMatrix, RFunction);
@@ -229,7 +272,7 @@ public class Rafl {
 		
 		resultDir = new File(resultDirPath + "/" + project);
 		if (!resultDir.exists()) {
-			logger.info("Creating sub directory to store result in " + resultDirPath + "/" + project);
+			logger.info("Creating sub directory to store result in " + resultDirPath + "/" + project.toLowerCase());
 			resultDir.mkdir();
 		}
 		resultDir = new File(resultDirPath + "/" + project + "/" + bugid);
@@ -284,66 +327,46 @@ public class Rafl {
 	}
 
 	private static void AggregateFLResultsD4J(String defect) throws Exception {
-		for (String fn : Config.scoringStrategy) {
-			for (int m : Config.m) {
-				if (fn.equals("wted") && m < Config.All) {
-					continue;
-				}
-				String blues_result_dir = null;
-				String rscript_dir = null;
-				String result_dir = null;
-				if (fn.equals("high") && m < Config.All) {
-					blues_result_dir = Config.raflInputFLResultsDir + "/blues/blues_m" + m + "_stmts";
-					rscript_dir = Config.RScriptDirPath + "/RScripts_m" + m + "_top100";
-					result_dir = Config.resultDirectory + "/RAFL_m" + m + "_top100";
-				} else if (fn.equals("high") && m == Config.All) {
-					blues_result_dir = Config.raflInputFLResultsDir + "/blues/blues_mAll_stmts";
-					rscript_dir = Config.RScriptDirPath + "/RScripts_SmAll_top100";
-					result_dir = Config.resultDirectory + "/RAFL_mAll_top100";
-				} else if (fn.equals("wted") && m == Config.All) {
-					blues_result_dir = Config.raflInputFLResultsDir + "/blues/blues_Wted_stmts";
-					rscript_dir = Config.RScriptDirPath + "/RScripts_Wted_top100";
-					result_dir = Config.resultDirectory + "/RAFL_Wted_top100";
-				}
+		String blues_result_dir = Config.raflInputFLResultsDir + "/blues_maxscore_voting";
+		String rscript_dir = Config.RScriptDirPath;
+		String result_dir = Config.resultDirectory;
 
-				String blues_result_file = blues_result_dir + "/" + defect.split("_")[0].toLowerCase() + "/"
-						+ defect.split("_")[1] + "/stmt-susps.txt";
+		String blues_result_file = blues_result_dir + "/" + defect.split("_")[0].toLowerCase() + "/"
+				+ defect.split("_")[1] + "/stmt-susps_top100.txt";
 
-				File blues_fl_result = new File(blues_result_file);
-				if (!blues_fl_result.exists()) {
-					logger.error("Blues FL results not found for defect " + defect + " m = " + m + " ScoreFn = " + fn + " at " + blues_result_file);
-					return;
-				}
-
-				String sbfl_result_file = Config.raflInputFLResultsDir + "/sbfl_stmts/"
-						+ defect.split("_")[0].toLowerCase() + "/" + defect.split("_")[1] + "/stmt-susps.txt";
-				File sbfl_fl_result = new File(sbfl_result_file);
-				if (!sbfl_fl_result.exists()) {
-					logger.error("SBFL results not found for defect " + defect + " at " + sbfl_result_file);
-					return;
-				}
-
-				File rDir = new File(rscript_dir);
-				if (!rDir.exists()) {
-					rDir.mkdir();
-				}
-
-				String r_path = rscript_dir + "/" + defect + ".R";
-
-				ArrayList<String> fl_results_paths = new ArrayList<String>();
-				fl_results_paths.add(sbfl_result_file);
-				fl_results_paths.add(blues_result_file);
-				logger.info("Combining fl results stored in :" + fl_results_paths);
-				ArrayList<List<String>> fl_results_list = Rafl.processFLResults(fl_results_paths);
-				int N = computeMinFLResultElements(fl_results_list);
-				combineSuspiciousStatements(defect, N, fl_results_list, r_path, result_dir);
-				fl_results_paths.clear();
-				fl_results_list.clear();
-				logger.info("FL results combined successfully\n");
-			}
+		File blues_fl_result = new File(blues_result_file);
+		if (!blues_fl_result.exists()) {
+			logger.error("Blues results not found for defect " + defect + " at " + blues_result_file);
+			return;
 		}
+
+		String sbfl_result_file = Config.raflInputFLResultsDir + "/sbfl_stmts/" + defect.split("_")[0].toLowerCase()
+				+ "/" + defect.split("_")[1] + "/stmt-susps_top100.txt";
+		File sbfl_fl_result = new File(sbfl_result_file);
+		if (!sbfl_fl_result.exists()) {
+			logger.error("SBFL results not found for defect " + defect + " at " + sbfl_result_file);
+			return;
+		}
+
+		File rDir = new File(rscript_dir);
+		if (!rDir.exists()) {
+			rDir.mkdir();
+		}
+
+		String r_path = rscript_dir + "/" + defect + ".R";
+
+		ArrayList<String> fl_results_paths = new ArrayList<String>();
+		fl_results_paths.add(sbfl_result_file);
+		fl_results_paths.add(blues_result_file);
+		logger.info("Combining fl results stored in :" + fl_results_paths);
+		ArrayList<List<String>> fl_results_list = Rafl.processFLResults(fl_results_paths);
+		int N = computeMinFLResultElements(fl_results_list);
+		combineSuspiciousStatements(defect, N, fl_results_list, r_path, result_dir);
+		fl_results_paths.clear();
+		fl_results_list.clear();
+		logger.info("FL results combined successfully\n");
+
 	}
-	
 
 	private static void combineFLResults(String defect, ArrayList<String> fLResultPaths) throws Exception {
 		String r_path = Config.RScriptDirPath + "/" + defect + ".R";
@@ -354,8 +377,8 @@ public class Rafl {
 		logger.info("Min # of elements considering all fl results list:" + N);
 		combineSuspiciousStatements(defect, N, fl_results_list, r_path, Config.resultDirectory);
 
-	}
-
+	}	
+	
 	public static void main(String[] args) throws Exception {
 		BasicConfigurator.configure();
 		setParametersFromSettingsFile();
@@ -370,8 +393,11 @@ public class Rafl {
 				ArrayList<String> d4jdefects = Serialize.deserializeArrayList(Config.defectsFilePath);
 				for(String def: d4jdefects){
 					logger.info("\n\nProcessing Defect: " + def);
-					if (def.contains("Chart"))
+					long startTime = System.nanoTime();
 					AggregateFLResultsD4J(def);
+					long endTime = System.nanoTime();
+					long duration = (endTime - startTime)/1000000000; 
+					logger.info("Total execution time for " + defect + " took " + duration + " seconds");
 				 }
 			} else {
 				logger.error("Defects file does not exists!");
@@ -391,7 +417,16 @@ public class Rafl {
 				}
 				FLResultPaths.add(args[i + 2]);
 			}
+			
+			Config.seed = Integer.parseInt(args[numFLTechniques + 2]); 
+			Config.N = Integer.parseInt(args[numFLTechniques + 3]); 
+			
+			long startTime = System.nanoTime();
 			combineFLResults(defect, FLResultPaths);
+			long endTime = System.nanoTime();
+			long duration = (endTime - startTime)/1000000000; 
+			logger.info("Total execution time for " + defect + " took " + duration + " seconds");
+			
 		}
 	}
 }
