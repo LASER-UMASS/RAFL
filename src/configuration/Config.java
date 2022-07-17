@@ -41,7 +41,7 @@ public class Config {
 	
 	// parameters used by RankAggreg R
 	public static final int k = 100;
-	public static final int seed = 1;
+	public static int seed = 1;
 	public static final String distance = "Spearman";
 	public static final String method = "CE";
 	public static final int maxIter = 1000;
@@ -50,7 +50,7 @@ public class Config {
 	public static final int popSize = 100;
 	public static final Double CP = 0.4;
 	public static final Double MP = 0.01;
-	
+	public static int N = 10000;
 	
 	public static void setParameters(String rootDirectory){
 		defectsFilePath = rootDirectory + "/d4j-defects.txt";
