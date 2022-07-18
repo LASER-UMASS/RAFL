@@ -332,7 +332,7 @@ public class Rafl {
 		String result_dir = Config.resultDirectory;
 
 		String blues_result_file = blues_result_dir + "/" + defect.split("_")[0].toLowerCase() + "/"
-				+ defect.split("_")[1] + "/stmt-susps_top100.txt";
+				+ defect.split("_")[1] + "/stmt-susps.txt";
 
 		File blues_fl_result = new File(blues_result_file);
 		if (!blues_fl_result.exists()) {
@@ -340,8 +340,8 @@ public class Rafl {
 			return;
 		}
 
-		String sbfl_result_file = Config.raflInputFLResultsDir + "/sbfl_stmts/" + defect.split("_")[0].toLowerCase()
-				+ "/" + defect.split("_")[1] + "/stmt-susps_top100.txt";
+		String sbfl_result_file = Config.raflInputFLResultsDir + "/sbfl/" + defect.split("_")[0].toLowerCase()
+				+ "/" + defect.split("_")[1] + "/stmt-susps.txt";
 		File sbfl_fl_result = new File(sbfl_result_file);
 		if (!sbfl_fl_result.exists()) {
 			logger.error("SBFL results not found for defect " + defect + " at " + sbfl_result_file);
@@ -356,8 +356,8 @@ public class Rafl {
 		String r_path = rscript_dir + "/" + defect + ".R";
 
 		ArrayList<String> fl_results_paths = new ArrayList<String>();
-		fl_results_paths.add(sbfl_result_file);
 		fl_results_paths.add(blues_result_file);
+		fl_results_paths.add(sbfl_result_file);
 		logger.info("Combining fl results stored in :" + fl_results_paths);
 		ArrayList<List<String>> fl_results_list = Rafl.processFLResults(fl_results_paths);
 		int N = computeMinFLResultElements(fl_results_list);
@@ -396,9 +396,9 @@ public class Rafl {
 					long startTime = System.nanoTime();
 					AggregateFLResultsD4J(def);
 					long endTime = System.nanoTime();
-					long duration = (endTime - startTime)/1000000000; 
+					long duration = (endTime - startTime)/1000000000;
 					logger.info("Total execution time for " + defect + " took " + duration + " seconds");
-				 }
+				}
 			} else {
 				logger.error("Defects file does not exists!");
 				return;
