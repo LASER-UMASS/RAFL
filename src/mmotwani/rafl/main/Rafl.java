@@ -44,13 +44,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
-
-import configuration.Config;
-import util.Serialize;
-import util.ExecuteR;
+import mmotwani.rafl.configuration.Config;
+import mmotwani.rafl.util.Serialize;
+import mmotwani.rafl.util.ExecuteR;
 
 public class Rafl {
 

@@ -23,16 +23,9 @@
 # ==============================================================================
 */
 
-package util;
-
-import java.io.*;
-import java.awt.Frame;
-import java.util.Enumeration;
-
+package mmotwani.rafl.util;
 import org.apache.log4j.Logger;
 import org.rosuda.JRI.*;
-
-import main.Rafl;
 
 public class ExecuteR {
 

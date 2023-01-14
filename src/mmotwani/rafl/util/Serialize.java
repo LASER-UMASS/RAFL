@@ -22,7 +22,7 @@
 # SOFTWARE.
 # ==============================================================================
 */
-package util;
+package mmotwani.rafl.util;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
