@@ -45,7 +45,7 @@ For example, to run RAFL on a Chart 1 defect in Defects4J, use the command:
 
 To run RAFL on all the 815 defects in Defects4J~v2.0, use the command:
 
-`java -Djava.library.path=.:/usr/local/lib/R/site-library/rJava/jri/ -jar rafl.jar all 1 10000` 
+`java -Djava.library.path=.:/usr/local/lib/R/site-library/rJava/jri/ -jar rafl.jar all <path-to-SBFL_results> <path-to-Blues_results> 1 10000` 
 (**Note:** Executing RAFL on all defects can take a long time as it combines SBFL with IRFL for 815 defects.)
 
 ## How to experiment using different configuration parameters
