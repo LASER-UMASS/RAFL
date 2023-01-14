@@ -22,7 +22,7 @@
 # SOFTWARE.
 # ==============================================================================
 */
-package main;
+package mmotwani.rafl.main;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -56,6 +56,10 @@ public class Rafl {
 
 	protected static Logger logger = Logger.getLogger(Rafl.class);
 
+	/**
+	 * @param path path to the file listing suspicious statements
+	 * @return ArrayList<String> that stores top-100 suspicious statements 
+	 */
 	private static ArrayList<String> fetchFLResultsFromFile(String path) {
 		ArrayList<String> results = new ArrayList<String>();
 		BufferedReader reader;
@@ -123,6 +127,11 @@ public class Rafl {
 		return results;
 	}
 
+	/**
+	 * @param fl_results_list list storing the suspicious statements with scores > 0
+	 * computed using different FL techniques
+	 * @return minimum number of statements with score > 0 considering all the lists 
+	 */
 	private static int computeMinFLResultElements(ArrayList<List<String>> fl_results_list) {
 		int min_size = Integer.MAX_VALUE;
 		for (List<String> fl_results : fl_results_list) {
@@ -133,6 +142,12 @@ public class Rafl {
 		return min_size;
 	}
 
+	
+	/**
+	 * @param fl_results_paths list storing the absolute path of FL results computed 
+	 * using different FL techniques. 
+	 * @return file_results_list that stores the top-100 suspicious statements for all FL techniques. 
+	 */
 	private static ArrayList<List<String>> processFLResults(ArrayList<String> fl_results_paths) {
 
 		ArrayList<List<String>> fl_results_list = new ArrayList<List<String>>();
@@ -145,6 +160,10 @@ public class Rafl {
 		return fl_results_list;
 	}
 
+	/**
+	 * @param map storing statements and their suspiciousness scores computed using FL technique
+	 * @return sorted map based on the decreasing order of suspiciousness scores. 
+	 */
 	private static HashMap<String, Double> sortByValues(HashMap<String, Double> map) {
 		List<Object> list = new LinkedList<Object>(map.entrySet());
 
@@ -168,6 +187,13 @@ public class Rafl {
 		return sortedHashMap;
 	}
 
+	/**
+	 * @param defect Defects4J defect for which the FL results are to be combined
+	 * @param rPath path to store R script
+	 * @param rMatrix MxN matrix storing the top-N suspicious statements obtained by M fault locacalization techniques 
+	 * @param rFunction RankAggreg command used to execute RAFL
+	 * @throws Exception
+	 */
 	private static void createRScriptToCombineFL(String defect, String rPath, String rMatrix, String rFunction)
 			throws Exception {
 
@@ -188,6 +214,14 @@ public class Rafl {
 		Files.write(rScriptPath, Rcommands, StandardCharsets.UTF_8);
 	}
 
+	/**
+	 * @param defect Defects4J defect for which the FL results are to be combined
+	 * @param N sample size
+	 * @param fl_results_list stores the top-100 suspicious statements for all FL techniques
+	 * @param rPath path to store R script
+	 * @param resultDirPath path to store R script
+	 * @throws Exception
+	 */
 	private static void combineSuspiciousStatements(String defect, int N, ArrayList<List<String>> fl_results_list,
 			String rPath, String resultDirPath) throws Exception {
 
@@ -250,6 +284,13 @@ public class Rafl {
 
 	}
 
+	
+	/**
+	 * @param defect Defects4J defect for which the FL results are to be combined
+	 * @param rPath path to store R script
+	 * @param resultDirPath path to store R script
+	 * @throws Exception
+	 */
 	private static void executeRScriptAndStoreResults(String defect, String rPath, String resultDirPath) throws Exception {
 
 		ExecuteR.ExecuteRScript(rPath);
@@ -270,18 +311,18 @@ public class Rafl {
 			resultDir.mkdir();
 		}
 		
-		resultDir = new File(resultDirPath + "/" + project);
+		resultDir = new File(resultDirPath + "/" + project.toLowerCase());
 		if (!resultDir.exists()) {
 			logger.info("Creating sub directory to store result in " + resultDirPath + "/" + project.toLowerCase());
 			resultDir.mkdir();
 		}
-		resultDir = new File(resultDirPath + "/" + project + "/" + bugid);
+		resultDir = new File(resultDirPath + "/" + project.toLowerCase() + "/" + bugid);
 		if (!resultDir.exists()) {
-			logger.info("Creating sub directory to store result in " + resultDirPath + "/" + project + "/" + bugid);
+			logger.info("Creating sub directory to store result in " + resultDirPath + "/" + project.toLowerCase() + "/" + bugid);
 			resultDir.mkdir();
 		}
 
-		String resultFilePath = resultDirPath + "/" + project + "/" + bugid + "/stmt-susps.txt";
+		String resultFilePath = resultDirPath + "/" + project.toLowerCase() + "/" + bugid + "/stmt-susps.txt";
 
 		String str = "Statement,Suspiciousness\n";
 		BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath));
@@ -298,6 +339,13 @@ public class Rafl {
 		logger.info("Combined FL result stored in " + resultFilePath);	
 	}
 
+	
+	/**
+	 * @param defect Defects4J defect for which the FL results are to be combined
+	 * @param rPath path to store R script
+	 * @return combined list of suspicious statements extracted from the R log file
+	 * @throws IOException
+	 */
 	private static String fetchResultList(String defect, String rPath) throws IOException {
 
 		String resultPath = rPath.replace(".R", ".out");
@@ -313,6 +361,10 @@ public class Rafl {
 		return final_list;
 	}
 
+	/**
+	 * Method to set the configuration parameters
+	 * @throws IOException
+	 */
 	private static void setParametersFromSettingsFile() throws IOException {
 		File settings_file = new File("rafl.settings");
 		BufferedReader br = new BufferedReader(new FileReader(settings_file));
@@ -321,31 +373,34 @@ public class Rafl {
 			if (line.contains("root"))
 				Config.rootDirectory = line.split("=")[1].trim();
 		}
-
+		br.close();
 		logger.info("Setting ROOT DIR as: " + Config.rootDirectory);
 		Config.setParameters(Config.rootDirectory);
 	}
 
-	private static void AggregateFLResultsD4J(String defect) throws Exception {
-		String blues_result_dir = Config.raflInputFLResultsDir + "/blues_maxscore_voting";
+	
+	/**
+	 * Method used to combine FL results of all 815 defects in Defects4J. 
+	 * @param defect Defects4J defect for which the FL results are to be combined
+	 * @param fLResultPaths path to the directories storing FL results computed using different FL techniques
+	 * @throws Exception
+	 */
+	private static void CombineFLResultsAllD4J(String defect, ArrayList<String> fLResultPaths) throws Exception {
+		
 		String rscript_dir = Config.RScriptDirPath;
 		String result_dir = Config.resultDirectory;
-
-		String blues_result_file = blues_result_dir + "/" + defect.split("_")[0].toLowerCase() + "/"
-				+ defect.split("_")[1] + "/stmt-susps.txt";
-
-		File blues_fl_result = new File(blues_result_file);
-		if (!blues_fl_result.exists()) {
-			logger.error("Blues results not found for defect " + defect + " at " + blues_result_file);
-			return;
-		}
-
-		String sbfl_result_file = Config.raflInputFLResultsDir + "/sbfl/" + defect.split("_")[0].toLowerCase()
-				+ "/" + defect.split("_")[1] + "/stmt-susps.txt";
-		File sbfl_fl_result = new File(sbfl_result_file);
-		if (!sbfl_fl_result.exists()) {
-			logger.error("SBFL results not found for defect " + defect + " at " + sbfl_result_file);
-			return;
+		ArrayList<String> fl_results_paths = new ArrayList<String>();
+		
+		for(String fl_dir:fLResultPaths){
+			String result_file = fl_dir + "/" + defect.split("_")[0].toLowerCase() + "/"
+					+ defect.split("_")[1] + "/stmt-susps.txt";
+			File fl_result = new File(result_file);
+			if (!fl_result.exists()) {
+				logger.error("FL results not found for defect " + defect + " at " + result_file);
+				return;
+			}else{
+				fl_results_paths.add(result_file);
+			}
 		}
 
 		File rDir = new File(rscript_dir);
@@ -354,10 +409,6 @@ public class Rafl {
 		}
 
 		String r_path = rscript_dir + "/" + defect + ".R";
-
-		ArrayList<String> fl_results_paths = new ArrayList<String>();
-		fl_results_paths.add(blues_result_file);
-		fl_results_paths.add(sbfl_result_file);
 		logger.info("Combining fl results stored in :" + fl_results_paths);
 		ArrayList<List<String>> fl_results_list = Rafl.processFLResults(fl_results_paths);
 		int N = computeMinFLResultElements(fl_results_list);
@@ -368,6 +419,12 @@ public class Rafl {
 
 	}
 
+	/**
+	 * Method used to combine FL results of an input defect in Defects4J.
+	 * @param defect Defects4J defect for which the FL results are to be combined
+	 * @param fLResultPaths path to the directories storing FL results computed using different FL techniques
+	 * @throws Exception
+	 */
 	private static void combineFLResults(String defect, ArrayList<String> fLResultPaths) throws Exception {
 		String r_path = Config.RScriptDirPath + "/" + defect + ".R";
 		logger.info("Processing fl results stored in :" + fLResultPaths);
@@ -387,6 +444,20 @@ public class Rafl {
 		String defect = args[0];
 
 		if (defect.contentEquals("all")) {
+			
+			int numFLTechniques = Integer.parseInt(args[1]);
+
+			// paths of the pre-computed FL results directories
+			ArrayList<String> FLResultPaths = new ArrayList<String>();
+			for (int i = 0; i < numFLTechniques; i++) {
+				File fl_result = new File(args[i + 2]);
+				if (!fl_result.exists()) {
+					logger.error("ERROR: FL results not found at " + args[i + 2]);
+					return;
+				}
+				FLResultPaths.add(args[i + 2]);
+			}
+			
 			File defectfile = new File(Config.defectsFilePath);
 			boolean exists = defectfile.exists();
 			if (exists) {
@@ -394,7 +465,7 @@ public class Rafl {
 				for(String def: d4jdefects){
 					logger.info("\n\nProcessing Defect: " + def);
 					long startTime = System.nanoTime();
-					AggregateFLResultsD4J(def);
+					CombineFLResultsAllD4J(def, FLResultPaths);
 					long endTime = System.nanoTime();
 					long duration = (endTime - startTime)/1000000000;
 					logger.info("Total execution time for " + defect + " took " + duration + " seconds");
@@ -407,7 +478,7 @@ public class Rafl {
 			// # of FL techniques to combine
 			int numFLTechniques = Integer.parseInt(args[1]);
 
-			// paths of the FL results
+			// paths of the FL results files
 			ArrayList<String> FLResultPaths = new ArrayList<String>();
 			for (int i = 0; i < numFLTechniques; i++) {
 				File fl_result = new File(args[i + 2]);

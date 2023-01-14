@@ -23,40 +23,29 @@
 # ==============================================================================
 */
 
-package configuration;
+package mmotwani.rafl.configuration;
 
 public class Config {
 
-	
-	public static String RScriptDirPath = null;
-	public static String rootDirectory = null;
-	public static String resultDirectory = null;
-
-	// parameters used for results computed using Blues for D4J
-	public static String raflInputFLResultsDir = null;
-	public static String defectsFilePath = null;
-	public static final int All = 10000;
-	public static final int[] m = new int[]{1, 25, 50, 100, All};
-	public static final String[] scoringStrategy = new String[] {"high", "wted"};
-	
-	// parameters used by RankAggreg R
-	public static final int k = 100;
-	public static int seed = 1;
-	public static final String distance = "Spearman";
-	public static final String method = "CE";
-	public static final int maxIter = 1000;
-	public static final int convIn = 7;
-	public static final Double rho = 0.01;
-	public static final int popSize = 100;
-	public static final Double CP = 0.4;
-	public static final Double MP = 0.01;
-	public static int N = 10000;
-	
+	public static String RScriptDirPath = null; // absolute path to the directory storing the intermediate R script and logs files
+	public static String rootDirectory = null;  // absolute path to the cloned repository
+	public static String resultDirectory = null; // absolute path to the output directory
+	public static String defectsFilePath = null;	// path to the d4j-defects.txt file storing 815 defects in Defects4J~v2.0
+	public static final int k = 100; // size of the combined list
+	public static int seed = 1; // seed specified for reproducibility
+	public static final String distance = "Spearman"; // distance metric (use Spearman or Kendall)
+	public static final String method = "CE"; // algorithm (use CE for cross entropy monte carlo or GA for genetic algorithm)
+	public static final int maxIter = 1000; // max #iterations allowed (default 1000)
+	public static final int convIn = 7;  // #consecutive iterations to decide if algorithm has converged (default: 7 for CE, 30 for GA)
+	public static int N = 10000; // #samples generated in each iteration. Used only by the CE (default: 10kn, where n is the #unique statements considering all ranked lists)
+	public static final Double rho = 0.01; // (ρ · N ) is quantile of candidate lists sorted by the objective function scores. Used only by the CE. (default: 0.01 when N ≥ 100 and 0.1 otherwise)
+	public static final int popSize = 100; // population size in each generation for the GA (default 100)
+	public static final Double CP = 0.4;  // Cross-over probability for the GA (default 0.4)
+	public static final Double MP = 0.01; // Mutation probability for the GA
+		
 	public static void setParameters(String rootDirectory){
 		defectsFilePath = rootDirectory + "/d4j-defects.txt";
-		raflInputFLResultsDir = rootDirectory + "/localized_statements/RAFL_input"; 
 		RScriptDirPath = rootDirectory + "/R_scripts";
-		resultDirectory = rootDirectory + "/localized_statements/RAFL_output";
-		
+		resultDirectory = rootDirectory + "/RAFL_results";
 	}
 }
