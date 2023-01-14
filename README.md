@@ -50,7 +50,10 @@ To run RAFL on all the 815 defects in Defects4J~v2.0, use the following command.
 
 ## How to experiment using different configuration parameters
 
-- Import the project in Eclipse and use the file `RAFL/src/main/Rafl.java` to run the program. 
+- Import the project in Eclipse and follow steps 1-4 described above. 
+
+- Use the main function defined in [`Rafl.java`](https://github.com/LASER-UMASS/RAFL/blob/main/src/mmotwani/rafl/main/Rafl.java) to launch RAFL 
+by providing the command line arguments described in 5 above. 
 
 - To experiment with different rank aggregation algorithms and distance metrics update the parameters 
 in file [`Config.java`](https://github.com/LASER-UMASS/RAFL/blob/main/src/mmotwani/rafl/configuration/Config.java). 
