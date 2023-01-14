@@ -39,9 +39,11 @@ For example, when combining the results of SBFL and Blues FL techniques, the nex
 - `seed`
 - `sample size`
 
-For example, to run RAFL on a Chart 1 defect in Defects4J, use the command:
+For example, to run RAFL on a Chart 1 defect in Defects4J, use the following command.
 
 `java -Djava.library.path=.:/usr/local/lib/R/site-library/rJava/jri/ -jar rafl.jar Chart_1 2 <path-to-SBFL_results>/chart/1/stmt-susps.txt <path-to-Blues_results>/chart/1/stmt-susps.txt 1 10000`
+
+The result will be stored in [`RAFL_results/chart/1/stmt-susps.txt`](https://github.com/LASER-UMASS/RAFL/blob/main/RAFL_results/chart/1/stmt-susps.txt).
 
 To run RAFL on all the 815 defects in Defects4J~v2.0, use the following command. 
 
