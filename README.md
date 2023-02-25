@@ -8,11 +8,11 @@ Manish Motwani and Yuriy Brun, Better Automatic Program Repair by Using Bug Repo
 
 ## Installation
 ### Dependencies:
-- Java version version 8
-- R version version 4.1
+- Java version 8
+- R version 4.1
 - RankAggreg R package version 0.6.6 (https://cran.r-project.org/web/packages/RankAggreg/index.html)
 - rJava R package version 1.0-5 (https://cran.r-project.org/web/packages/rJava/index.html)
-- Defects4J version version 2.0.0 (https://github.com/rjust/defects4j) 
+- Defects4J version 2.0.0 (https://github.com/rjust/defects4j) 
 
 ### How to run:
 1. After cloaning this repository, specify the absolute path to the cloned repository as the `root_directory` in the [`rafl.settings`](https://github.com/LASER-UMASS/RAFL/blob/main/rafl.settings) file. 
